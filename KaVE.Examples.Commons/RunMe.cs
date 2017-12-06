@@ -28,7 +28,7 @@ namespace KaVE.Examples.Commons
 
         public static void Main(string[] args)
         {
-            Process _task = new CommandEventCountProcess();
+            Process _task = new EventCountProcess();
 
             new GettingStarted(EventsDir, _task).Run();
         }
