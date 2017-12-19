@@ -46,6 +46,6 @@ namespace KaVE.Examples.Commons
 
         internal abstract void processBasic(IDEEvent e);
 
-        internal abstract void getResult(string userZip);
+        internal abstract void getResult(string percentage, bool NextUserNew);
     }
 }

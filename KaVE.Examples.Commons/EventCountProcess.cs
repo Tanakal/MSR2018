@@ -50,13 +50,13 @@ namespace KaVE.Examples.Commons
             }
         }
 
-        internal override void getResult(string userZip)
+        internal override void getResult(string percentage, bool NextUserNew)
         {
             try
             {
                 //Pass the filepath and filename to the StreamWriter Constructor
-                StreamWriter sw = new StreamWriter("C:\\Users\\jimmyR\\Desktop\\coursJapon\\Mining challenge 2018\\eventsCount.txt");
-                sw.WriteLine("{0}", userZip);
+                StreamWriter sw = new StreamWriter("C:\\Users\\jimmyR\\Desktop\\coursJapon\\Mining challenge 2018\\result\\[Event] Which IDE Event do developer use\\eventsCount.txt");
+                sw.WriteLine("{0}", percentage);
                 sw.WriteLine("EventName;number");
 
                 foreach (KeyValuePair<string, int> eventCount in eventsNumber)

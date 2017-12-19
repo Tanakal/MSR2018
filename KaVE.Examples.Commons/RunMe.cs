@@ -28,9 +28,10 @@ namespace KaVE.Examples.Commons
 
         public static void Main(string[] args)
         {
-            Process _task = new EventCountProcess();
+            Process[] _tasks = new Process[] {  new RefactoringTestFailProcess(), new ChangeTestFailProcess()};
+            //Process[] _tasks = new Process[] { new ChangeTestFailProcess()};
 
-            new GettingStarted(EventsDir, _task).Run();
+            new GettingStarted(EventsDir, _tasks).Run();
         }
     }
 }

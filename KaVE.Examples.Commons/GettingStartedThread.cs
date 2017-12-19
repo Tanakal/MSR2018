@@ -21,6 +21,7 @@ using System.Linq;
 using KaVE.Commons.Model.Events;
 using KaVE.Commons.Utils.Collections;
 using KaVE.Commons.Utils.IO.Archives;
+using KaVE.Commons.Utils.Concurrency;
 
 /**
  * Simple example that shows how the dataset can be opened, all users identified,
@@ -28,12 +29,12 @@ using KaVE.Commons.Utils.IO.Archives;
  */
 namespace KaVE.Examples.Commons
 {
-    internal class GettingStarted
+    internal class GettingStartedThread
     {
         private readonly string _eventsDir;
         private Process[] _tasks;
 
-        public GettingStarted(string eventsDir, Process[] tasks)
+        public GettingStartedThread(string eventsDir, Process[] tasks)
         {
             _eventsDir = eventsDir;
             _tasks = tasks;
@@ -52,15 +53,19 @@ namespace KaVE.Examples.Commons
             var ZipIterator = 0;
             foreach (var userZip in userZips)
             {
+                Task[] taskThread = taskThread = new Task[0];
+                int taskNum = 0;
                 ZipIterator += 1;
                 Console.Write("\n#### processing user zip: {0} #####\n", userZip);
 
                 // open the .zip file ...
                 using (IReadingArchive ra = new ReadingArchive(Path.Combine(_eventsDir, userZip)))
                 {
+
                     // ... and iterate over content.
                     while (ra.HasNext())
                     {
+                        taskThread = new Task[ra.Count * _tasks.Length];
                         /*
                          * within the userZip, each stored event is contained as a
                          * single file that contains the Json representation of a
@@ -68,12 +73,18 @@ namespace KaVE.Examples.Commons
                          */
                         try
                         {
-                            var e = ra.GetNext<IDEEvent>();
 
-                            // the events can then be processed individually
-                            foreach (Process task in _tasks) task.process(e);                               
+                            var e = ra.GetNext<IDEEvent>();
+                            foreach (Process task in _tasks)
+                            {
+                                taskThread[taskNum] = (new Task(() => { task.process(e); }));
+                                taskThread[taskNum].Start();
+                                ++taskNum;
+                            }
+
+                            // the events can then be processed individually                              
                         }
-                        catch(System.InvalidOperationException e)
+                        catch (System.InvalidOperationException e)
                         {
 
                             Console.WriteLine("unknow error!" + e.Message);
@@ -89,8 +100,9 @@ namespace KaVE.Examples.Commons
                     }
                 }
 
+                //Task.WaitAll(taskThread);
 
-                if(ZipIterator == userZips.Count)
+                if (ZipIterator == userZips.Count)
                 {
                     foreach (Process task in _tasks) task.getResult(ZipIterator + " / " + userZips.Count, true);
                 }
@@ -132,7 +144,7 @@ namespace KaVE.Examples.Commons
              * get rid of the casting. For now, this is recommended way to access the
              * contents.
              */
-        
+
 
     }
 }
