@@ -39,7 +39,7 @@ namespace KaVE.Examples.Commons
 
         public static void Main(string[] args)
         {
-            string EventsDir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName + "\\Events-170301";
+            string EventsDir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName + "\\Events";
 
             //Process[] _tasks = new Process[] {  new RefactoringTestFailProcess(), new ChangeTestFailProcess()};
             Process[] _tasks = new Process[] { new ChangeTestFailProcess()};
