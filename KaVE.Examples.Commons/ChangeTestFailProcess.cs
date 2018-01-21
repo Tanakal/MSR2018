@@ -11,10 +11,13 @@ using System.IO;
 
 namespace KaVE.Examples.Commons
 {
+    //this class collect the informations/events/parameters presented in the paper (all the 7 parameters). 
+    //It's the class to launch on the RunMe.cs if you want to retrieve the same informations I used for the analyses.
     class ChangeTestFailProcess : Process
     {
         Dictionary<string, string[]> TestCases = new Dictionary<string, string[]>();
         Dictionary<int, string[]> TestResult = new Dictionary<int, string[]>();
+        List<string> DocumentName = new List<string>();
 
         int _numberEditChanges = 0;
         int _numberSolutionChanges = 0;
@@ -22,6 +25,7 @@ namespace KaVE.Examples.Commons
         int _numberDebugerStart = 0;
         int _numberDebugerDesignPhase = 0;
         int _TimeBreakpointDebuging = 0;
+        int _numberOfNavigation = 0;
 
         int _testCaseId = 0;
 
@@ -33,21 +37,35 @@ namespace KaVE.Examples.Commons
             {
                 _numberCompletionChanges += e.Selections.Count;
             }
+
+            if (e.ActiveDocument != null && e.ActiveDocument.Identifier != null)
+            {
+                addDocumentName(e.ActiveDocument.Identifier);
+            }     
         }
 
         internal override void process(CommandEvent ce)
         {
-            //not used
+            if (ce.ActiveDocument != null && ce.ActiveDocument.Identifier != null)
+            {
+                addDocumentName(ce.ActiveDocument.Identifier);
+            } 
         }
 
         internal override void processBasic(IDEEvent e)
         {
+            if(e.ActiveDocument!= null && e.ActiveDocument.Identifier != null)
+            {
+                addDocumentName(e.ActiveDocument.Identifier);
+            }
+            
             var EditE = e as EditEvent;
             var TestRunE = e as TestRunEvent;
             var SolutionE = e as SolutionEvent;
             var DebugE = e as DebuggerEvent;
+            var NavE = e as NavigationEvent;
 
-            //analyse of EditionEvent (we will take into consideration the number of changes for all edit).
+            //analyse of Debugging event (we will take into consideration the design phase, the time into breackpoint and the number of breackpoint).
             if (DebugE != null)
             {
                 if (DebugE.Mode == DebuggerMode.Design) _numberDebugerDesignPhase++;
@@ -60,7 +78,7 @@ namespace KaVE.Examples.Commons
             }
 
             //analyse of EditionEvent (we will take into consideration the number of changes for all edit).
-            if (EditE != null)
+            else if (EditE != null)
             {
                 _numberEditChanges += EditE.NumberOfChanges;
             }
@@ -75,6 +93,13 @@ namespace KaVE.Examples.Commons
                 }
             }
 
+            else if (NavE != null)
+            {
+                //analyse of all navigation (we count the number of navigation).
+                _numberOfNavigation += 1;
+            }
+
+            //analyse of Test Event (it's here we stock the results of other parameters between two state/result of a unit test).
             else if (TestRunE != null)
             {
                 foreach (KeyValuePair<string, string[]> test in TestCases) 
@@ -85,6 +110,7 @@ namespace KaVE.Examples.Commons
                     int v3 = int.Parse(test.Value[3]);
                     int v4 = int.Parse(test.Value[4]);
                     int v5 = int.Parse(test.Value[5]);
+                    int v6 = int.Parse(test.Value[6]);
 
                     test.Value[0] = (v0 + _numberSolutionChanges).ToString();
 
@@ -95,36 +121,55 @@ namespace KaVE.Examples.Commons
                     test.Value[3] = (v3 + _numberDebugerStart).ToString();
                     test.Value[4] = (v4 + _numberDebugerDesignPhase).ToString();
                     test.Value[5] = (v5 + _TimeBreakpointDebuging).ToString();
+
+                    test.Value[6] = (v6 + _numberOfNavigation).ToString();
                 }
 
                 for (int i = 0; i < TestRunE.Tests.Count; i++)
                 {
-                    if (TestCases.ContainsKey(TestRunE.Tests.ElementAt(i).TestMethod.Name))
+                    if (TestCases.ContainsKey(TestRunE.Tests.ElementAt(i).TestMethod.Identifier))
                     {
-                        //Test : Success -> Failed
-                        if (TestRunE.Tests.ElementAt(i).Result.ToString() == "Failed" && TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][3] == "Success")
-                        {
-                            _testCaseId += 1;
-                            TestResult.Add(_testCaseId, new string[] { TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][0], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][1], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][2], "0" });
-                        }
-                        //Test : Failed -> Success
-                        else if (TestRunE.Tests.ElementAt(i).Result.ToString() == "Success" && TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][3] == "Failed")
-                        {
-                            _testCaseId += 1;
-                            TestResult.Add(_testCaseId, new string[] { TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][0], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][1], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][2], "2" });
-                        }
-                        //Test : Failed -> Failed   OR  Success -> Success
-                        else if ((TestRunE.Tests.ElementAt(i).Result.ToString() == "Failed" && TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][3] == "Failed") || (TestRunE.Tests.ElementAt(i).Result.ToString() == "Success" && TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][3] == "Success"))
-                        {
-                            _testCaseId += 1;
-                            TestResult.Add(_testCaseId, new string[] { TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][0], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][1], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][2], "1" });
-                        }
 
-                        TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][3] = TestRunE.Tests.ElementAt(i).Result.ToString();
+                        if (TestRunE.Tests.ElementAt(i).Result.ToString() != "Error")
+                        {
+                            //Test : Success -> Failed
+                            if (TestRunE.Tests.ElementAt(i).Result.ToString() == "Failed" && TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][7] == "Success")
+                            {
+                                _testCaseId += 1;
+                                TestResult.Add(_testCaseId, new string[] { TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][0], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][1], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][2], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][3], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][4], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][5], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][6], DocumentName.Count.ToString(), "0" });
+                            }
+                            //Test : Failed -> Success
+                            else if (TestRunE.Tests.ElementAt(i).Result.ToString() == "Success" && TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][7] == "Failed")
+                            {
+                                _testCaseId += 1;
+                                TestResult.Add(_testCaseId, new string[] { TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][0], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][1], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][2], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][3], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][4], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][5], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][6], DocumentName.Count.ToString(), "3" });
+                            }
+                            //Test : Failed -> Failed   OR  Success -> Success
+                            else if ((TestRunE.Tests.ElementAt(i).Result.ToString() == "Failed" && TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][7] == "Failed") )
+                            {
+                                _testCaseId += 1;
+                                TestResult.Add(_testCaseId, new string[] { TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][0], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][1], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][2], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][3], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][4], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][5], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][6], DocumentName.Count.ToString(), "1" });
+                            }
+
+                            else if ((TestRunE.Tests.ElementAt(i).Result.ToString() == "Success" && TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][7] == "Success"))
+                            {
+                                _testCaseId += 1;
+                                TestResult.Add(_testCaseId, new string[] { TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][0], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][1], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][2], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][3], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][4], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][5], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][6], DocumentName.Count.ToString(), "2" });
+                            }
+
+                            TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][0] = "0";
+                            TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][1] = "0";
+                            TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][2] = "0";
+                            TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][3] = "0";
+                            TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][4] = "0";
+                            TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][5] = "0";
+                            TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][6] = "0";
+                            TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][7] = TestRunE.Tests.ElementAt(i).Result.ToString();
+                        }
                     }
                     else
                     {
-                        TestCases.Add(TestRunE.Tests.ElementAt(i).TestMethod.Name, new string[] { "0", "0", "0", "0", "0", "0", TestRunE.Tests.ElementAt(i).Result.ToString() });
+                        TestCases.Add(TestRunE.Tests.ElementAt(i).TestMethod.Identifier, new string[] { "0", "0", "0", "0", "0", "0", "0", TestRunE.Tests.ElementAt(i).Result.ToString() });
                     }
                 }
                 _numberSolutionChanges = 0;
@@ -134,32 +179,32 @@ namespace KaVE.Examples.Commons
                 _numberDebugerDesignPhase = 0;
                 _TimeBreakpointDebuging = 0;
                 _lastTerminatedAt = DateTimeOffset.MinValue;
+                _numberOfNavigation = 0;
             }
         }
 
-        internal override void getResult(string percentage, bool NextUserNew)
+        internal override void getResult(string percentage)
         {
-            if (NextUserNew)
-            {
-                TestCases = new Dictionary<string, string[]>();
-                _numberSolutionChanges = 0;
-                _numberEditChanges = 0;
-                _numberCompletionChanges = 0;
-                _numberDebugerStart = 0;
-                _numberDebugerDesignPhase = 0;
-                _TimeBreakpointDebuging = 0;
-                _lastTerminatedAt = DateTimeOffset.MinValue;
-            }
+            _numberSolutionChanges = 0;
+            _numberEditChanges = 0;
+            _numberCompletionChanges = 0;
+            _numberDebugerStart = 0;
+            _numberDebugerDesignPhase = 0;
+            _TimeBreakpointDebuging = 0;
+            _lastTerminatedAt = DateTimeOffset.MinValue;
+            _numberOfNavigation = 0;
+            TestCases = new Dictionary<string, string[]>();
+            DocumentName = new List<string>();
 
             try
             {
                 //Pass the filepath and filename to the StreamWriter Constructor
-                StreamWriter sw = new StreamWriter("C:\\Users\\jimmyR\\Desktop\\coursJapon\\Mining challenge 2018\\result\\[Refactoring] Does refactoring lead to more failed tests\\AllParameters.txt");
-                sw.WriteLine("NumberSolutionEvent,NumberEditChanges,NumberCompletionChanges,NumberDebugerStart,NumberDebugerDesignPhase,TimeDebugingBreakPOint,State");
+                StreamWriter sw = new StreamWriter(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName + "\\Results\\RunUnitTest\\FINAL-Result.txt");
+                sw.WriteLine("NumberSolutionEvent,NumberEditChanges,NumberCompletionChanges,NumberDebugerStart,NumberDebugerDesignPhase,TimeDebugingBreakPOint,numberOfNavigation,DocumentActive,State");
 
                 foreach (KeyValuePair<int, string[]> Test in TestResult)
                 {
-                    sw.WriteLine("{0},{1},{2},{3},{4},{5},{6}", Test.Value[0], Test.Value[1], Test.Value[2], Test.Value[3], Test.Value[4], Test.Value[5], Test.Value[6]);
+                    sw.WriteLine("{0},{1},{2},{3},{4},{5},{6},{7},{8}", Test.Value[0], Test.Value[1], Test.Value[2], Test.Value[3], Test.Value[4], Test.Value[5], Test.Value[6], Test.Value[7], Test.Value[8]);
                 }
 
                 //Close the file
@@ -173,6 +218,15 @@ namespace KaVE.Examples.Commons
             {
                 Console.WriteLine("Process over!");
             }
+        }
+
+        private void addDocumentName(string ActiveDocument)
+        {
+            //we don't know the file Yet -> we add it in the list
+            if (DocumentName.IndexOf(ActiveDocument) == -1)
+            {
+                DocumentName.Add(ActiveDocument);
+            }    
         }
     }
 }

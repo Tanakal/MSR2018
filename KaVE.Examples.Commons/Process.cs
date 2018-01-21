@@ -12,12 +12,18 @@ using System.Threading.Tasks;
 
 namespace KaVE.Examples.Commons
 {
+    //it's the abstract class, the origin of the other Process class.
+    //each other process class implement some research on the 11M event. 
+    //the type of research is explaned directly on the top of each ....Process.cs
+
     internal abstract class Process
     {
         internal void process(IDEEvent e)
         {
             var ce = e as CommandEvent;
             var compE = e as CompletionEvent;
+
+            /*this is all the Event we can use*/
 
             //var IDEStateE = e as IDEStateEvent;
             //var WindowE = e as WindowEvent;
@@ -46,6 +52,6 @@ namespace KaVE.Examples.Commons
 
         internal abstract void processBasic(IDEEvent e);
 
-        internal abstract void getResult(string percentage, bool NextUserNew);
+        internal abstract void getResult(string percentage);
     }
 }

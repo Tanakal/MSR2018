@@ -1,0 +1,10 @@
+The 3 files are the files I use to do the reasearch paper.
+
+I collect "FINAL-Result.txt" by running the c# Project with the Process "ChangeTestFailProcess"
+(If you do it, you will find the .txt file in the folder "RunUnitTest")
+
+"FINAL-ResultConvertedInARFF.arff" is just a manual conversion of "FINAL-Result.txt" in arff
+"FINAL-Analyses with xlstat on excel.xlsx" is the excel file I use to do statistical analyes
+
+The 4 folders are the folders in where the output of the c# project are stocked.
+It's only .txt files.

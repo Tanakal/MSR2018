@@ -9,6 +9,8 @@ using System.IO;
 
 namespace KaVE.Examples.Commons
 {
+    //this class collect some information about the navigation: the way developers navigate (keyboard shortcut, ...), when, ...
+    //I decide to focus on the Result of Unit test and decide to abandon this reseach. 
     class CodeNavigationProcess : Process
     {
         Dictionary<string, int> NavigationTypeCount = new Dictionary<string, int>();
@@ -104,12 +106,13 @@ namespace KaVE.Examples.Commons
             }
         }
 
-        internal override void getResult(string percentage, bool NextUserNew)
+        internal override void getResult(string percentage)
         {
             IsNullLastNavEDate = true;
             try
             {
                 //Pass the filepath and filename to the StreamWriter Constructor
+                string EventsDir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName + "\\Events-170301";
                 StreamWriter sw = new StreamWriter("C:\\Users\\jimmyR\\Desktop\\coursJapon\\Mining challenge 2018\\result\\[Code Navigation] How do developers navigate the code base\\CountTypeOfNavigationCode.txt");
                 sw.WriteLine("{0}", percentage);
                 sw.WriteLine("TypeOfNavigation;number");
@@ -137,7 +140,7 @@ namespace KaVE.Examples.Commons
                 try
                 {
                     //Pass the filepath and filename to the StreamWriter Constructor
-                    StreamWriter sw = new StreamWriter("C:\\Users\\jimmyR\\Desktop\\coursJapon\\Mining challenge 2018\\result\\[Code Navigation] How do developers navigate the code base\\EnumTypeOfNavigationCode.txt");
+                    StreamWriter sw = new StreamWriter(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.Parent.FullName + "\\Results\\RunNavigation\\EnumTypeOfNavigationCode.txt");
                     sw.WriteLine("TypeOfNavigation;FullName;Identifier;Time(ms);ActiveDocument");
 
                     foreach (KeyValuePair<int, string[]> navigationType in NavigationTypeEnum)

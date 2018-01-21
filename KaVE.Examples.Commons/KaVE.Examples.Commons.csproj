@@ -72,7 +72,6 @@
     <Compile Include="CodeNavigationProcess.cs" />
     <Compile Include="CommandEventCountProcess.cs" />
     <Compile Include="EventCountProcess.cs" />
-    <Compile Include="GettingStartedThread.cs" />
     <Compile Include="Process.cs" />
     <Compile Include="GettingStarted.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

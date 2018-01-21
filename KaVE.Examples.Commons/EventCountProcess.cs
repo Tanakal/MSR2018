@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace KaVE.Examples.Commons
 {
+    //This class count the number of events for ech differents events.
+    //It was a  priliminary work, just to train me to browse the event and to have first analyses.
+    //It allow me to see what event happend the most, ...
     internal class EventCountProcess : Process
     {
         Dictionary<string, int> eventsNumber = new Dictionary<string, int>();
@@ -50,12 +53,12 @@ namespace KaVE.Examples.Commons
             }
         }
 
-        internal override void getResult(string percentage, bool NextUserNew)
+        internal override void getResult(string percentage)
         {
             try
             {
                 //Pass the filepath and filename to the StreamWriter Constructor
-                StreamWriter sw = new StreamWriter("C:\\Users\\jimmyR\\Desktop\\coursJapon\\Mining challenge 2018\\result\\[Event] Which IDE Event do developer use\\eventsCount.txt");
+                StreamWriter sw = new StreamWriter(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName + "\\Results\\RunEvent\\eventsCount.txt");
                 sw.WriteLine("{0}", percentage);
                 sw.WriteLine("EventName;number");
 

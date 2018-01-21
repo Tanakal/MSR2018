@@ -9,6 +9,10 @@ using System.IO;
 
 namespace KaVE.Examples.Commons
 {
+    //In the same way than the EventCountProcess, this class count the number of different command for each CommandEvent
+    //With the EventCountProcess, I see that CommandEvent represent 80% of all the event. For this reason, i decides to browse these CommandEvent
+    //The result show me trivial things: the most used commands are "openFile", "save File", "home", "refresh", "unknow command", ...
+    //I decides to don't use CommandEvent in the rest of the analyses cause of the poor information we have about it.
     class CommandEventCountProcess : Process
     {
         Dictionary<string, int> commandNumber = new Dictionary<string, int>();
@@ -50,12 +54,12 @@ namespace KaVE.Examples.Commons
             }
         }
 
-        internal override void getResult(string percentage, bool NextUserNew)
+        internal override void getResult(string percentage)
         {
             try
             {
                 //Pass the filepath and filename to the StreamWriter Constructor
-                StreamWriter sw = new StreamWriter("C:\\Users\\jimmyR\\Desktop\\coursJapon\\Mining challenge 2018\\result\\[Command Event] Which IDE commands do developer use\\commandCount.txt");
+                StreamWriter sw = new StreamWriter(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName + "\\Results\\RunCommand\\commandCount.txt");
                 sw.WriteLine("{0}", percentage);
                 sw.WriteLine("CommandName;number");
 

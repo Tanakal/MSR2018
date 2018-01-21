@@ -11,6 +11,9 @@ using System.IO;
 
 namespace KaVE.Examples.Commons
 {
+    //this class collect the informations/events/parameters related to EditEvent only.
+    //We can launch this class int the RunMe.cs to collect more informations about refactoring. I did it, but not show it 
+    //in the paper.
     class RefactoringTestFailProcess : Process
     {
         Dictionary<string, string[]> TestCases = new Dictionary<string, string[]>();
@@ -58,32 +61,37 @@ namespace KaVE.Examples.Commons
 
                 for (int i = 0; i < TestRunE.Tests.Count; i++)
                 {
-                    if (TestCases.ContainsKey(TestRunE.Tests.ElementAt(i).TestMethod.Name))
+                    if (TestCases.ContainsKey(TestRunE.Tests.ElementAt(i).TestMethod.Identifier))
                     {
-                        //Test : Success -> Failed
-                        if (TestRunE.Tests.ElementAt(i).Result.ToString() == "Failed" && TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][3] == "Success")
+                        if (TestRunE.Tests.ElementAt(i).Result.ToString() != "Error")
                         {
-                            _testCaseId += 1;
-                            TestResult.Add(_testCaseId, new string[] { TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][0], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][1], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][2],"0" });
+                            //Test : Success -> Failed
+                            if (TestRunE.Tests.ElementAt(i).Result.ToString() == "Failed" && TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][3] == "Success")
+                            {
+                                _testCaseId += 1;
+                                TestResult.Add(_testCaseId, new string[] { TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][0], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][1], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][2], "0" });
+                            }
+                            //Test : Failed -> Success
+                            else if (TestRunE.Tests.ElementAt(i).Result.ToString() == "Success" && TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][3] == "Failed")
+                            {
+                                _testCaseId += 1;
+                                TestResult.Add(_testCaseId, new string[] { TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][0], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][1], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][2], "2" });
+                            }
+                            //Test : Failed -> Failed   OR  Success -> Success
+                            else if ((TestRunE.Tests.ElementAt(i).Result.ToString() == "Failed" && TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][3] == "Failed") || (TestRunE.Tests.ElementAt(i).Result.ToString() == "Success" && TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][3] == "Success"))
+                            {
+                                _testCaseId += 1;
+                                TestResult.Add(_testCaseId, new string[] { TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][0], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][1], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][2], "1" });
+                            }
+                            TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][0] = "0";
+                            TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][1] = "0";
+                            TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][2] = "0";
+                            TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Identifier][3] = TestRunE.Tests.ElementAt(i).Result.ToString();
                         }
-                        //Test : Failed -> Success
-                        else if (TestRunE.Tests.ElementAt(i).Result.ToString() == "Success" && TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][3] == "Failed")
-                        {
-                            _testCaseId += 1;
-                            TestResult.Add(_testCaseId, new string[] { TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][0], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][1], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][2], "2" });
-                        }
-                        //Test : Failed -> Failed   OR  Success -> Success
-                        else if ((TestRunE.Tests.ElementAt(i).Result.ToString() == "Failed" && TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][3] == "Failed") || (TestRunE.Tests.ElementAt(i).Result.ToString() == "Success" && TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][3] == "Success"))
-                        {
-                            _testCaseId += 1;
-                            TestResult.Add(_testCaseId, new string[] { TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][0], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][1], TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][2], "1" });
-                        }
-
-                        TestCases[TestRunE.Tests.ElementAt(i).TestMethod.Name][3] = TestRunE.Tests.ElementAt(i).Result.ToString();
                     }
                     else
                     {
-                        TestCases.Add(TestRunE.Tests.ElementAt(i).TestMethod.Name, new string[] { "0", "0", "0", TestRunE.Tests.ElementAt(i).Result.ToString() });
+                        TestCases.Add(TestRunE.Tests.ElementAt(i).TestMethod.Identifier, new string[] { "0", "0", "0", TestRunE.Tests.ElementAt(i).Result.ToString() });
                     }
                 }
                 _numberEdit = 0;
@@ -92,20 +100,17 @@ namespace KaVE.Examples.Commons
             }
         }
 
-        internal override void getResult(string percentage, bool NextUserNew)
+        internal override void getResult(string percentage)
         {
-            if (NextUserNew)
-            {
-                TestCases = new Dictionary<string, string[]>();
-                _numberEdit = 0;
-                _numberChanges = 0;
-                _sizeChanges = 0;
-            }
+            TestCases = new Dictionary<string, string[]>();
+            _numberEdit = 0;
+            _numberChanges = 0;
+            _sizeChanges = 0;
 
             try
             {
                 //Pass the filepath and filename to the StreamWriter Constructor
-                StreamWriter sw = new StreamWriter("C:\\Users\\jimmyR\\Desktop\\coursJapon\\Mining challenge 2018\\result\\[Refactoring] Does refactoring lead to more failed tests\\refactoringTest.txt");
+                StreamWriter sw = new StreamWriter(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName + "\\Results\\RunUnitTest\\refactoringTest.txt");
                 sw.WriteLine("NumberEdit,NumberChanges,SizeChanges,State");
 
                 foreach (KeyValuePair<int, string[]> Test in TestResult)

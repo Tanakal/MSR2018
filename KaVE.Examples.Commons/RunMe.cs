@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+using System.IO;
+
 namespace KaVE.Examples.Commons
 {
     internal class RunMe
@@ -23,15 +25,27 @@ namespace KaVE.Examples.Commons
          * have a folder that includes a bunch of folders that have dates as
          * names and that contain .zip files.
 	     */
-        public const string EventsDir = "C:\\Users\\jimmyR\\Desktop\\coursJapon\\Mining challenge 2018\\Events-170301";
-        
+
+        /* Prcess[] contains all the process we want to run on each Event encountered.
+         * We can run 1 process, 2 process, or more.
+         *I create 5 type of process who can be run:
+         *  - EventCountProcess : find some data on the event in general.
+         *  - CommandEventCountProcess : find some data the command event.
+         *  - CodeNavigationProcess : find some data on the navigation of users ("how users navigate in the source code")
+         *  - RefactoringTestFailProcess : find some data and correlation between the refactoring and the unit tests.
+         *  - ChangeTestFailProcess : find some data and correlation between some parameters(refactoring, debugging, navigation, ...) and test Unit.
+         *                            It's the general version of RefactoringTestFailProcess. It's the "Process" I uses to do some statisticals analyses.
+         */
 
         public static void Main(string[] args)
         {
-            Process[] _tasks = new Process[] {  new RefactoringTestFailProcess(), new ChangeTestFailProcess()};
-            //Process[] _tasks = new Process[] { new ChangeTestFailProcess()};
+            string EventsDir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName + "\\Events-170301";
+
+            //Process[] _tasks = new Process[] {  new RefactoringTestFailProcess(), new ChangeTestFailProcess()};
+            Process[] _tasks = new Process[] { new ChangeTestFailProcess()};
 
             new GettingStarted(EventsDir, _tasks).Run();
         }
     }
 }
+ 

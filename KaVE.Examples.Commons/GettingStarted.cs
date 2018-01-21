@@ -23,8 +23,8 @@ using KaVE.Commons.Utils.Collections;
 using KaVE.Commons.Utils.IO.Archives;
 
 /**
- * Simple example that shows how the dataset can be opened, all users identified,
- * and all contained events deserialized.
+ * This class let use browsing all the 11M event, deserializing theim and launching a "Process" on each of theim.
+ * this class only browse events and did not any analyses. "Process class" do the analyses.
  */
 namespace KaVE.Examples.Commons
 {
@@ -76,11 +76,11 @@ namespace KaVE.Examples.Commons
                         catch(System.InvalidOperationException e)
                         {
 
-                            Console.WriteLine("unknow error!" + e.Message);
+                            Console.WriteLine(e.Message);
                         }
                         catch (Newtonsoft.Json.JsonReaderException e)
                         {
-                            Console.WriteLine("unknow error!" + e.Message);
+                            Console.WriteLine(e.Message);
                         }
                         catch (Exception e)
                         {
@@ -89,22 +89,8 @@ namespace KaVE.Examples.Commons
                     }
                 }
 
-
-                if(ZipIterator == userZips.Count)
-                {
-                    foreach (Process task in _tasks) task.getResult(ZipIterator + " / " + userZips.Count, true);
-                }
-                else
-                {
-                    if (userZips.ElementAt(ZipIterator).Split('\\')[0] == userZips.ElementAt(ZipIterator - 1).Split('\\')[0])
-                    {
-                        foreach (Process task in _tasks) task.getResult(ZipIterator + " / " + userZips.Count, false);
-                    }
-                    else
-                    {
-                        foreach (Process task in _tasks) task.getResult(ZipIterator + " / " + userZips.Count, true);
-                    }
-                }
+                //getThe result for this actual zip and stock it in the .txt Result file.
+                foreach (Process task in _tasks) task.getResult(ZipIterator + " / " + userZips.Count);
             }
         }
 
@@ -119,20 +105,6 @@ namespace KaVE.Examples.Commons
                 .Select(f => f.Replace(prefix, ""));
             return Sets.NewHashSetFrom(zips);
         }
-
-        /*
-             * if you review the type hierarchy of IDEEvent, you will realize that
-             * several subclasses exist that provide access to context information that
-             * is specific to the event type.
-             * 
-             * To access the context, you should check for the runtime type of the event
-             * and cast it accordingly.
-             * 
-             * As soon as I have some more time, I will implement the visitor pattern to
-             * get rid of the casting. For now, this is recommended way to access the
-             * contents.
-             */
-        
-
+       
     }
 }
